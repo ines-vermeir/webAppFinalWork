@@ -1,0 +1,24 @@
+{
+  "prepare_queue": {
+    "installed": [],
+    "uninstalled": []
+  },
+  "config_munge": {
+    "files": {}
+  },
+  "installed_plugins": {
+    "cordova-plugin-whitelist": {
+      "PACKAGE_NAME": "be.ehb"
+    },
+    "cordova-plugin-tts": {
+      "PACKAGE_NAME": "be.ehb"
+    },
+    "cordova-plugin-speechrecognition": {
+      "PACKAGE_NAME": "be.ehb"
+    },
+    "cordova-plugin-device": {
+      "PACKAGE_NAME": "be.ehb"
+    }
+  },
+  "dependent_plugins": {}
+}
