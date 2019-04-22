@@ -14,15 +14,6 @@ $(document).on('pagebeforeshow', '#login', function(){
 
 // "C:\Program Files (x86)\Google\Chrome\Application\Chrome.exe" --user-data-dir="C:/Chrome dev session" --disable-web-security[91876:47192:0412/162022.861:ERROR:browser_process_sub_thread.cc(209)] Waited 18 ms for network service
 
-
-// $(document).on('pagebeforeshow', '#index', function(){
-//     if(userObject.username.length == 0){ // If username is not set (lets say after force page refresh) get us back to the login page
-//         $.mobile.changePage( "#login", { transition: "slide"} ); // In case result is true change page to Index
-//     }
-//     $(this).find('[data-role="header"] h3').append('Wellcome ' + userObject.username); // Change header with wellcome msg
-//     //$("#index").trigger('pagecreate');
-// });
-
 var ajax = {
     sendRequest:function(save_data){
         $.ajax({

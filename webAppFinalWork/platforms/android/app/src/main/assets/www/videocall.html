@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>ConnectyCube Video calling code sample</title>
+    <link rel="stylesheet" type="text/css" href="css/stylesVideocall.css">
+
+</head>
+<body>
+    <div class="wrapper j-wrapper">
+        <header class="header">
+            <div class="inner">
+                <h2 class="header__title">Video gesprek</h2>
+            </div>
+        </header>
+
+        <main class="app" id="app">
+            <div class="page">
+              <div class="dashboard j-dashboard">
+              </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- SOUNDS -->
+    <audio id="endCallSignal" preload="auto">
+        <source src="audio/end_of_call.ogg" type="audio/ogg" />
+        <source src="audio/end_of_call.mp3" type="audio/mp3" />
+    </audio>
+
+    <audio id="callingSignal" loop preload="auto">
+        <source src="audio/calling.ogg" type="audio/ogg" />
+        <source src="audio/calling.mp3" type="audio/mp3" />
+    </audio>
+
+    <audio id="ringtoneSignal" loop preload="auto">
+        <source src="audio/ringtone.ogg" type="audio/ogg" />
+        <source src="audio/ringtone.mp3" type="audio/mp3" />
+    </audio>
+
+      <script type="text/template" id="tpl_call_status">
+          <% if(typeof(users.accepted) !== 'undefined') { %>
+              <%  _.each(users.accepted, function(el, i, list) { %>
+                  <% if(list.length === 1){ %>
+                      <b><%= el.login %></b> has accepted the call.
+                  <% } else { %>
+                      <% if( (i+1) === list.length) { %>
+                          <b><%= el.login %></b> have accepted the call.
+                      <% } else { %>
+                          <b><%= el.login %></b>,
+                      <% } %>
+                  <% } %>
+              <% }); %>
+          <% } %>
+
+          <% if(typeof(users.rejected) !== 'undefined') { %>
+              <%  _.each(users.rejected, function(el, i, list) { %>
+                  <% if(list.length === 1){ %>
+                      <b><%= el.login %></b> has rejecterd the call.
+                  <% } else { %>
+                      <% if( (i+1) === list.length) { %>
+                          <b><%= el.login %></b> have rejecterd the call.
+                      <% } else { %>
+                          <b><%= el.login %></b>,
+                      <% } %>
+                  <% } %>
+              <% }); %>
+          <% } %>
+      </script>
+
+
+      <div class="frames">
+          <div class="frames__main">
+              <div class="frames__main_timer invisible" id="timer">
+              </div>
+
+              <div class="cb-video">
+                  <video id="main_video" class="frames__main_v cb-video_source"></video>
+              </div>
+          </div>
+
+          <div class="frames__callees j-callees"></div>
+      </div>
+
+      <div class="caller">
+
+          <h4 class="caller__name">
+              <b>You</b>
+              <span class="j-caller_name">(<%= nameUser %>)</span>
+          </h4>
+
+          <div class="caller__frames">
+              <div class="cb-video">
+                  <video id="localVideo" class="cb-video_source"></video>
+              </div>
+
+          </div>
+      </div>
+
+      <script type="text/template" id="users_tpl">
+          <div class="users__title" title="Choose a user to call">
+              Choose a user to call
+          </div>
+
+          <div class="users__list j-users">
+          </div>
+      </script>
+
+      <script type="text/template" id="user_tpl">
+          <div class="users__item">
+              <button class="users__user j-user" data-id="<%= id %>" data-login="<%= login %>" data-name="<%= login %>">
+                  <i class="user__icon"></i>
+                  <span class="user__name"><%= login %></span>
+                  <i class="users__btn_remove j-user-remove"></i>
+              </button>
+          </div>
+      </script>
+
+      <script type="text/template" id="callee_video">
+          <div class="frames_callee callees__callee j-callee">
+              <div class="frames_callee__inner">
+                  <p class="frames_callee__status j-callee_status_<%=userID%>">
+                      <%=state%>
+                  </p>
+
+                  <div class="cb-video">
+                      <video class="j-callees__callee__video cb-video_source"
+                          id="remote_video_<%=userID%>"
+                          data-user="<%=userID%>">
+                      </video>
+                  </div>
+              </div>
+
+              <p class="frames_callee__name"><%=name%></p>
+
+              <div class="frames_callee__bitrate">
+                  <span id="bitrate_<%=userID%>">0</span> kbps
+              </div>
+          </div>
+      </script>
+
+    <!-- SCRIPT -->
+    <!-- dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.2.3/backbone-min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.1/js/bootstrap.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/connectycube@1.7.2/dist/connectycube.min.js"></script>
+
+    <!-- app -->
+    <script src="js/config.js"></script>
+    <script src="js/helpers.js"></script>
+    <script src="js/videocall.js"></script>
+</body>
+</html>

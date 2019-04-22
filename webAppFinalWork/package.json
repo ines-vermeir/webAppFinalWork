@@ -11,9 +11,11 @@
     "license": "Apache-2.0",
     "dependencies": {
         "@ionic-native/speech-recognition": "^5.3.0",
+        "connectycube": "^1.7.2",
         "cordova-android": "^7.1.4",
         "cordova-browser": "^5.0.4",
         "cordova-jquery": "^0.1.6",
+        "cordova-plugin-android-volume": "0.0.12",
         "cordova-plugin-device": "^2.0.2",
         "cordova-plugin-speechrecognition": "^1.2.0",
         "cordova-plugin-tts": "^0.2.3",

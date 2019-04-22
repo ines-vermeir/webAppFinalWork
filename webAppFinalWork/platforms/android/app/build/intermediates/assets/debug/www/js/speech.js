@@ -1,24 +1,56 @@
 document.addEventListener("deviceready", onDeviceReady, false);
 
+//video chat
+// var CREDENTIALS = {
+//     appId: 637,
+//     authKey: 'HBPTdMYwk8KsQzG',
+//     authSecret: 'Dk8cHEXRzczYner'
+// };
+// var CONFIG = {
+//     debug: { mode: 1 } // enable DEBUG mode (mode 0 is logs off, mode 1 -> console.log())
+//     /*on: {
+//       sessionExpired: function(handleResponse, retry) {
+//
+//         // call handleResponse() if you do not want to process a session expiration,
+//         // so an error will be returned to origin request
+//         // handleResponse();
+//
+//         ConnectyCube.createSession(function(error, session) {
+//           retry(session);
+//      });
+//    }
+//  }*/
+// };
+// ConnectyCube.init(CREDENTIALS, CONFIG);
+// //TODO: fill in with database info
+// var userCredentials = {login: 'ines.vermeir@student.ehb.be', password: 'admin123'};
+// ConnectyCube.createSession(userCredentials, function(error, session) {
+// console.log(error);
+// });
+
 //Watson
 var sessionID;
 var intervalConnection;
 //Speech recognition & speechSynthesis
 var voices;
 var listenON = true;
-window.SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
-var recognition = new window.SpeechRecognition();
+window.SpeechRecognition;
+var recognition;
+//Chat view html
+var chat = document.getElementById('chat');
 
 function onDeviceReady() {
     console.log(device.platform);
     //Browser
     if(device.platform == "browser"){
-
+      window.SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
+      recognition = new window.SpeechRecognition();
       //check if brower support
       if ('speechSynthesis' in window && 'webkitSpeechRecognition' in window || 'speechRecognition' in window) {
           console.log("spraak wordt ondersteund");
-          connectionAPI();
-          listen();
+          //connectionAPI();
+          //listen();
+          window.location.href = "../videocall.html";
       }
     //Mobile
     }else{
@@ -29,7 +61,7 @@ function onDeviceReady() {
                         window.plugins.speechRecognition.hasPermission(function (isGranted){
                           if(isGranted){
                               // Do other things as the initialization here
-                              startRecognition();
+                             startRecognitionOnMobile();
                           }else{
                               // Request the permission
                               window.plugins.speechRecognition.requestPermission(function (){
@@ -41,34 +73,58 @@ function onDeviceReady() {
                             }
                           }, function(err){
                             console.log(err);
+                            chat.innerHTML += '<div class="person"><h4 class= "prefix_msg"></h4><p class="intent">' + err; + '</p></div>';
+
                           });
                            }
         }, function(err){
             console.error(err);
         });
-
-          // Get the list of supported languages
-          window.plugins.speechRecognition.getSupportedLanguages(function(data){
-            console.log(data); // ["es-ES","de-DE","id-ID" ........ ]
-            voices = data;
-          }, function(err){
-            console.error(err);
-          });
-
-
     }
 }
-function startRecognition(){
+
+//Mobile
+function startRecognitionOnMobile(){
+  //setVolumeMobile(0);
     window.plugins.speechRecognition.startListening(function(result){
-        // Show results in the console
-        console.log(result);
+        chat.innerHTML += '<div class="person"><h4 class= "prefix_msg"></h4><p class="intent">' + result + '</p></div>';
+        //to Watson
+        //sendToWatsonAPI(result);
+        //setVolumeMobile(100);
+        speakMobile(result);
+        if(listenON){
+          startRecognitionOnMobile()
+        }
     }, function(err){
         console.error(err);
     }, {
-        language: "en-US",
-        showPopup: true
+        language: "nl-NL",
+        showPopup: false
+    });
+  }
+function setVolumeMobile(volume){
+  window.androidVolume.setMusic(volume, false,
+    function(success){
+      console.log(succes);
+    },
+    function(error){
+      console.log(error);
+      chat.innerHTML += '<div class="person"><h4 class= "prefix_msg"></h4><p class="intent">' + error; + '</p></div>';
+
     });
 }
+
+function speakMobile(text){
+  TTS.speak({
+    text: text,
+    locale: 'nl-NL'
+  }, function () {
+    console.log('Text succesfully spoken');
+  }, function (reason) {
+    console.log(reason);
+  });
+}
+
 //Connect to Watson via API
 //FUTURE: store context var before refresh session id
 function connectionAPI() {
@@ -119,7 +175,6 @@ function sendToWatsonAPI(text) {
                     //speak
                     speak(watson);
                     //add to chat
-                    var chat = document.getElementById('chat');
                     chat.innerHTML += '<div class="computer"><h4 class= "prefix_msg">Bot: </h4><p class="answer">' + watson + '</p></div>';
                     //reset interval
                     clearInterval(intervalConnection);
@@ -143,7 +198,13 @@ function sendToWatsonAPI(text) {
     }
 }
 
+//Browser
+//TODO: bug error: "not-allowed"
 function listen() {
+    if(recognition == null){
+      console.log("Error: recognition");
+      return
+    }
     recognition.interimResults = true;
     recognition.maxAlternatives = 10;
     recognition.continuous = true;
@@ -185,9 +246,8 @@ function listen() {
         // add to chat view
         //TODO: check if final transcribe is same as previous
         console.log(final_transcript.length);
-        var chat = document.getElementById('chat');
         if (!final_transcript.length == 0) {
-            chat.innerHTML += '<div class="person"><h4 class= "prefix_msg">Ik: </h4><p class="intent">' + final_transcript + '</p></div>';
+            chat.innerHTML += '<div class="person"><h4 class= "prefix_msg"></h4><p class="intent">' + final_transcript + '</p></div>';
             listenON = false;
             recognition.stop();
             sendToWatsonAPI(final_transcript);
@@ -208,24 +268,15 @@ function speak(text) {
             } else if (voice.lang.search("NL") != -1) {
                 msg.voice = voice;
                 msg.lang = voice.lang;
-
             }
             return true;
         }
     })
-
-    //    msg.voice = voices[10]; // Note: some voices don't support altering params
-    //    msg.voiceURI = 'native';
-    //    msg.volume = 1; // 0 to 1
-    //    msg.rate = 10; // 0.1 to 10
-    //    msg.pitch = 1; //0 to 2
-    //    msg.text = text;
     window.speechSynthesis.speak(msg);
     msg.onend = function () {
         listenON = true;
         recognition.start();
     }
-
     return;
 }
 
@@ -253,56 +304,52 @@ const printVoicesList = async () => {
 printVoicesList();
 
 
-//MOBILE
-// document.addEventListener('deviceready', function () {
-//     this.speechRecognition.isRecognitionAvailable()
-//         .then((available: boolean) => console.log(available))
+//start video call
+// function startVideoCall(){
+//   var mediaParams = {
+//       audio: true,
+//       video: true,
+//       elementId: 'videocall' // ID of audio/video DOM element to attach a video stream to
+//     };
+//     var calleesIds = [101110]; // User's ids
+//     var sessionType = ConnectyCube.videochat.CallType.VIDEO; // AUDIO is also possible
+//     var additionalOptions = {};
+//     var session = ConnectyCube.videochat.createNewSession(calleesIds, sessionType, additionalOptions);
 //
-//     // Start the recognition process
-//     this.speechRecognition.startListening(options)
-//         .subscribe(
-//             (matches: string[]) => console.log(matches),
-//             (onerror) => console.log('error:', onerror)
-//         )
-//
-//     // Stop the recognition process (iOS only)
-//     this.speechRecognition.stopListening()
-//
-//     // Get the list of supported languages
-//     this.speechRecognition.getSupportedLanguages()
-//         .then(
-//             (languages: string[]) => console.log(languages),
-//             (error) => console.log(error)
-//         )
-//
-//     // Check permission
-//     this.speechRecognition.hasPermission()
-//         .then((hasPermission: boolean) => console.log(hasPermission))
-//
-//     // Request permissions
-//     this.speechRecognition.requestPermission()
-//         .then(
-//             () => console.log('Granted'),
-//             () => console.log('Denied')
-//         )
-//
-//
-//     // basic usage
-//     TTS.speak('hello, world!').then(function () {
-//             alert('success');
-//         }, function (reason) {
-//             alert(reason);
+//     session.getUserMedia(mediaParams, function(error, stream) {
+//       if(error != null){
+//         console.log(error);
+//       }else{
+//         var extension = {};
+//         session.call(extension, function(error) {
+//           console.log(error);
 //         });
+//       }
+//     });
+// }
 //
-//     // or with more options
-//     TTS.speak({
-//             text: 'hello, world!',
-//             locale: 'en-GB',
-//             rate: 0.75
-//         }).then(function () {
-//             alert('success');
-//         }, function (reason) {
-//             alert(reason);
-//         });
-// }, false);
-//}
+// ConnectyCube.videochat.onUserNotAnswerListener = function(session, userId) {
+//   //TODO: send email
+// };
+//
+// ConnectyCube.videochat.onAcceptCallListener = function(session, userId, extension) {
+//
+// };
+//
+// ConnectyCube.videochat.onRemoteStreamListener = function(session, userID, remoteStream) {
+//  // attach the remote stream to DOM element
+//  session.attachMediaStream('videocallRemote', remoteStream);
+// };
+//
+// ConnectyCube.videochat.onRejectCallListener = function(session, userId, extension) {
+//
+// };
+//
+// function stopVideoCall(){
+//   var extension = {};
+//   session.stop(extension);
+//   //TODO: check where logout needs to be
+//   ConnectyCube.logout(function(error) {
+//
+//   });
+// }
